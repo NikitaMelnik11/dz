@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Movie Database</title>
+  <style>
+    /* Додайте стилі для вашої таблиці та форм */
+  </style>
+</head>
+<body>
+  <h1>Movie Database</h1>
+  
+  <button onclick="fetchMovies()">Отримати студентів</button>
+  <table id="moviesTable" border="1">
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Назва</th>
+        <th>Жанр</th>
+        <th>Режисер</th>
+        <th>Рік</th>
+        <th>Дії</th>
+      </tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <h2>Додати фільм</h2>
+  <form id="addMovieForm">
+    <input type="text" placeholder="Назва" id="title">
+    <input type="text" placeholder="Жанр" id="genre">
+    <input type="text" placeholder="Режисер" id="director">
+    <input type="number" placeholder="Рік" id="year">
+    <button type="button" onclick="addMovie()">Додати фільм</button>
+  </form>
+
+  <script>
+    const apiUrl = 'http://localhost:3000/movies';
+
+    function fetchMovies() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(data => {
+          const tbody = document.getElementById('moviesTable').querySelector('tbody');
+          tbody.innerHTML = '';
+          data.forEach(movie => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+              <td>${movie.id}</td>
+              <td>${movie.title}</td>
+              <td>${movie.genre}</td>
+              <td>${movie.director}</td>
+              <td>${movie.year}</td>
+              <td>
+                <button onclick="updateMovie(${movie.id})">Оновити</button>
+                <button onclick="patchMovie(${movie.id})">Редагувати</button>
+                <button onclick="deleteMovie(${movie.id})">Видалити</button>
+              </td>
+            `;
+            tbody.appendChild(row);
+          });
+        });
+    }
+
+    function addMovie() {
+      const title = document.getElementById('title').value;
+      const genre = document.getElementById('genre').value;
+      const director = document.getElementById('director').value;
+      const year = parseInt(document.getElementById('year').value);
+
+      fetch(apiUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, genre, director, year })
+      }).then(fetchMovies);
+    }
+
+    function updateMovie(id) {
+      const title = prompt("Enter new title:");
+      const genre = prompt("Enter new genre:");
+      const director = prompt("Enter new director:");
+      const year = parseInt(prompt("Enter new year:"));
+
+      fetch(`${apiUrl}/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ title, genre, director, year })
+      }).then(fetchMovies);
+    }
+
+    function patchMovie(id) {
+      const field = prompt("Enter field to update (title, genre, director, year):");
+      const value = prompt("Enter new value:");
+
+      fetch(`${apiUrl}/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ [field]: field === 'year' ? parseInt(value) : value })
+      }).then(fetchMovies);
+    }
+
+    function deleteMovie(id) {
+      fetch(`${apiUrl}/${id}`, {
+        method: 'DELETE'
+      }).then(fetchMovies);
+    }
+  </script>
+</body>
+</html>
